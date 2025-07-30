@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Terminology Case Study Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+        }
+        
+        .word-root {
+            background-color: #4ade80; /* Green */
+            border: 2px solid #22c55e;
+        }
+        
+        .combining-form {
+            background-color: #facc15; /* Yellow */
+            border: 2px solid #eab308;
+        }
+        
+        .suffix {
+            background-color: #fb7185; /* Red/Pink */
+            border: 2px solid #e11d48;
+        }
+        
+        .prefix {
+            background-color: #60a5fa; /* Blue */
+            border: 2px solid #3b82f6;
+        }
+        
+        .puzzle-piece {
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: inline-block;
+            margin: 0 2px;
+        }
+        
+        .quiz-header {
+            background: linear-gradient(to right, rgba(251, 113, 133, 0.2), rgba(74, 222, 128, 0.2));
+            border-bottom: 3px solid #60a5fa;
+        }
+        
+        .badge {
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        
+        .badge:hover {
+            transform: scale(1.05);
+        }
+        
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .correct-answer {
+            background-color: #86efac !important;
+            border-color: #22c55e !important;
+        }
+        
+        .wrong-answer {
+            background-color: #fca5a5 !important;
+            border-color: #ef4444 !important;
+        }
+        
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse-animation {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="quiz-header py-4 px-6 shadow-md">
+            <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <div class="word-root puzzle-piece">Word Root</div>
+                        <div class="combining-form puzzle-piece">Combining Form</div>
+                        <div class="suffix puzzle-piece">Suffix</div>
+                        <div class="prefix puzzle-piece">Prefix</div>
+                    </div>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Medical Terminology Quiz</h1>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto px-4 py-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800">Case Study Quiz (20 Points)</h2>
+                    <div id="attempt-indicator" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        Attempt 1 of 2
+                    </div>
+                </div>
+
+                <div id="quiz-container">
+                    <div id="progress-container" class="mb-6">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-700">Question <span id="current-question">1</span> of 10</span>
+                            <span class="text-sm font-medium text-gray-700">Score: <span id="score">0</span>/20</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 10%"></div>
+                        </div>
+                    </div>
+
+                    <div id="question-container" class="mb-6">
+                        <!-- Questions will be inserted here -->
+                    </div>
+
+                    <div class="flex justify-between">
+                        <button id="prev-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition disabled:opacity-50" disabled>Previous</button>
+                        <button id="next-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Next</button>
+                    </div>
+                </div>
+
+                <div id="results-container" class="hidden">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Quiz Results</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                        <div id="attempt1-results" class="mb-3">
+                            <div class="flex justify-between mb-1">
+                                <span class="font-medium">Attempt 1 Score:</span>
+                                <span id="attempt1-score" class="font-medium text-blue-600">0/20</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium">Correct Answers:</span>
+                                <span id="attempt1-correct" class="font-medium text-green-600">0/10</span>
+                            </div>
+                        </div>
+                        
+                        <div id="attempt2-results" class="mb-3 hidden">
+                            <div class="flex justify-between mb-1">
+                                <span class="font-medium">Attempt 2 Score:</span>
+                                <span id="attempt2-score" class="font-medium text-blue-600">0/20</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="font-medium">Correct Answers:</span>
+                                <span id="attempt2-correct" class="font-medium text-green-600">0/10</span>
+                            </div>
+                        </div>
+                        
+                        <div id="final-results" class="pt-3 border-t border-gray-200 hidden">
+                            <div class="flex justify-between">
+                                <span class="font-bold">Final Average Score:</span>
+                                <span id="final-score" class="font-bold text-blue-600">0/20</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="badge-container" class="flex flex-col items-center mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
+                        <h4 class="text-lg font-medium text-gray-800 mb-3">Achievement Unlocked!</h4>
+                        <div id="badge" class="badge w-32 h-32 mb-3">
+                            <!-- Badge will be inserted here -->
+                        </div>
+                        <p id="badge-title" class="text-lg font-semibold text-blue-600 mb-1">Medical Terminology Master</p>
+                        <p id="badge-description" class="text-sm text-gray-600 text-center">You've demonstrated excellent knowledge of medical terminology!</p>
+                    </div>
+
+                    <div id="first-attempt-buttons" class="flex justify-between">
+                        <button id="review-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Review Answers</button>
+                        <div class="space-x-2">
+                            <button id="second-attempt-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Take Second Attempt</button>
+                            <button id="submit-to-canvas-btn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">Submit to Canvas</button>
+                        </div>
+                    </div>
+                    
+                    <div id="second-attempt-buttons" class="flex justify-between hidden">
+                        <button id="review-attempt2-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition">Review Answers</button>
+                        <button id="submit-final-btn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">Submit to Canvas</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-4 px-6">
+            <div class="container mx-auto text-center text-sm">
+                <p>© 2023 Medical Terminology Quiz | Educational Purposes Only</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal for Canvas submission confirmation -->
+    <div id="canvas-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden modal">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">Submission Successful</h3>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-6">
+                <div class="flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <p class="text-center text-gray-700">Your quiz results have been successfully submitted to Canvas.</p>
+                <div id="modal-single-score" class="text-center text-gray-700 mt-2">
+                    Score: <span id="modal-score" class="font-bold text-blue-600">0/20</span>
+                </div>
+                <div id="modal-dual-scores" class="text-center text-gray-700 mt-2 hidden">
+                    <div>Attempt 1: <span id="modal-score1" class="font-bold text-blue-600">0/20</span></div>
+                    <div>Attempt 2: <span id="modal-score2" class="font-bold text-blue-600">0/20</span></div>
+                    <div class="mt-1 font-medium">Average Score: <span id="modal-avg-score" class="font-bold text-blue-600">0/20</span></div>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <button id="confirm-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz data for first attempt
+        const quizDataAttempt1 = [
+            {
+                question: "Case Study 1: A 45-year-old patient presents with inflammation of the stomach lining. The gastroenterologist diagnoses this condition as:",
+                options: ["Nephritis", "Gastritis", "Enteritis", "Hepatitis"],
+                correctAnswer: 1,
+                explanation: "Gastritis is inflammation of the stomach lining. It breaks down as: <span class='word-root puzzle-piece'>gastr</span> (stomach) + <span class='suffix puzzle-piece'>itis</span> (inflammation).",
+                points: 2
+            },
+            {
+                question: "Case Study 2: A patient's chart indicates 'bradycardia' with a heart rate of 45 BPM. What does this medical term mean?",
+                options: ["Heart inflammation", "Irregular heart rate", "Slow heart rate", "Fast heart rate"],
+                correctAnswer: 2,
+                explanation: "Bradycardia means slow heart rate. It breaks down as: <span class='prefix puzzle-piece'>brady</span> (slow) + <span class='word-root puzzle-piece'>card</span> (heart) + <span class='suffix puzzle-piece'>ia</span> (condition).",
+                points: 2
+            },
+            {
+                question: "Case Study 3: A patient undergoes a surgical procedure to remove the gallbladder. This procedure is called:",
+                options: ["Gastrectomy", "Nephrectomy", "Appendectomy", "Cholecystectomy"],
+                correctAnswer: 3,
+                explanation: "Cholecystectomy is the surgical removal of the gallbladder. It breaks down as: <span class='word-root puzzle-piece'>cholecyst</span> (gallbladder) + <span class='suffix puzzle-piece'>ectomy</span> (surgical removal).",
+                points: 2
+            },
+            {
+                question: "Case Study 4: A patient is diagnosed with a condition characterized by abnormal cell growth in the lungs. The medical term for this is:",
+                options: ["Pulmonary neoplasm", "Emphysema", "Pneumonia", "Bronchitis"],
+                correctAnswer: 0,
+                explanation: "Pulmonary neoplasm refers to abnormal cell growth in the lungs. It breaks down as: <span class='word-root puzzle-piece'>pulmon</span> (lung) + <span class='suffix puzzle-piece'>ary</span> (relating to) + <span class='word-root puzzle-piece'>neo</span> (new) + <span class='word-root puzzle-piece'>plasm</span> (growth).",
+                points: 2
+            },
+            {
+                question: "Case Study 5: A patient presents with pain and inflammation in multiple joints. The rheumatologist diagnoses this as:",
+                options: ["Spondylosis", "Myalgia", "Polyarthritis", "Osteoporosis"],
+                correctAnswer: 2,
+                explanation: "Polyarthritis is inflammation of multiple joints. It breaks down as: <span class='prefix puzzle-piece'>poly</span> (many) + <span class='word-root puzzle-piece'>arthr</span> (joint) + <span class='suffix puzzle-piece'>itis</span> (inflammation).",
+                points: 2
+            },
+            {
+                question: "Case Study 6: A patient's blood test reveals an abnormally high white blood cell count. This condition is termed:",
+                options: ["Erythrocytosis", "Leukocytosis", "Thrombocytopenia", "Leukopenia"],
+                correctAnswer: 1,
+                explanation: "Leukocytosis is an elevated white blood cell count. It breaks down as: <span class='word-root puzzle-piece'>leuk</span> (white) + <span class='combining-form puzzle-piece'>o</span> + <span class='word-root puzzle-piece'>cyt</span> (cell) + <span class='suffix puzzle-piece'>osis</span> (abnormal increase).",
+                points: 2
+            },
+            {
+                question: "Case Study 7: A neurologist diagnoses a patient with inflammation of the brain and spinal cord. This condition is called:",
+                options: ["Neuralgia", "Meningitis", "Encephalomyelitis", "Encephalitis"],
+                correctAnswer: 2,
+                explanation: "Encephalomyelitis is inflammation of the brain and spinal cord. It breaks down as: <span class='word-root puzzle-piece'>encephal</span> (brain) + <span class='combining-form puzzle-piece'>o</span> + <span class='word-root puzzle-piece'>myel</span> (spinal cord) + <span class='suffix puzzle-piece'>itis</span> (inflammation).",
+                points: 2
+            },
+            {
+                question: "Case Study 8: A patient undergoes a procedure to visualize the inside of the large intestine. This diagnostic procedure is called:",
+                options: ["Cystoscopy", "Colonoscopy", "Bronchoscopy", "Gastroscopy"],
+                correctAnswer: 1,
+                explanation: "Colonoscopy is the visualization of the large intestine. It breaks down as: <span class='word-root puzzle-piece'>colon</span> (large intestine) + <span class='combining-form puzzle-piece'>o</span> + <span class='suffix puzzle-piece'>scopy</span> (visual examination).",
+                points: 2
+            },
+            {
+                question: "Case Study 9: A patient is diagnosed with a condition characterized by the hardening of the liver. The medical term for this is:",
+                options: ["Cholecystitis", "Cirrhosis", "Hepatomegaly", "Hepatitis"],
+                correctAnswer: 1,
+                explanation: "Cirrhosis refers to scarring and hardening of the liver. While not directly visible in the word, it affects the <span class='word-root puzzle-piece'>hepat</span> (liver) tissue, causing <span class='suffix puzzle-piece'>osis</span> (abnormal condition).",
+                points: 2
+            },
+            {
+                question: "Case Study 10: A patient presents with excessive sugar in the blood. The endocrinologist diagnoses this as:",
+                options: ["Glycosuria", "Hyperglycemia", "Hypoglycemia", "Gluconeogenesis"],
+                correctAnswer: 1,
+                explanation: "Hyperglycemia is high blood sugar. It breaks down as: <span class='prefix puzzle-piece'>hyper</span> (excessive) + <span class='word-root puzzle-piece'>glyc</span> (sugar) + <span class='suffix puzzle-piece'>emia</span> (blood condition).",
+                points: 2
+            }
+        ];
+
+        // Quiz data for second attempt (alternative questions)
+        const quizDataAttempt2 = [
+            {
+                question: "Case Study 1: A patient is diagnosed with inflammation of the kidney. The nephrologist documents this as:",
+                options: ["Gastritis", "Nephritis", "Dermatitis", "Hepatitis"],
+                correctAnswer: 1,
+                explanation: "Nephritis is inflammation of the kidney. It breaks down as: <span class='word-root puzzle-piece'>nephr</span> (kidney) + <span class='suffix puzzle-piece'>itis</span> (inflammation).",
+                points: 2
+            },
+            {
+                question: "Case Study 2: A patient's ECG shows an abnormally fast heart rate of 120 BPM. This condition is termed:",
+                options: ["Tachycardia", "Bradycardia", "Arrhythmia", "Cardiomegaly"],
+                correctAnswer: 0,
+                explanation: "Tachycardia means fast heart rate. It breaks down as: <span class='prefix puzzle-piece'>tachy</span> (fast) + <span class='word-root puzzle-piece'>card</span> (heart) + <span class='suffix puzzle-piece'>ia</span> (condition).",
+                points: 2
+            },
+            {
+                question: "Case Study 3: A patient undergoes a surgical procedure to remove part of the stomach. This procedure is called:",
+                options: ["Appendectomy", "Nephrectomy", "Gastrectomy", "Cholecystectomy"],
+                correctAnswer: 2,
+                explanation: "Gastrectomy is the surgical removal of part or all of the stomach. It breaks down as: <span class='word-root puzzle-piece'>gastr</span> (stomach) + <span class='suffix puzzle-piece'>ectomy</span> (surgical removal).",
+                points: 2
+            },
+            {
+                question: "Case Study 4: A patient is diagnosed with a condition characterized by abnormal enlargement of the liver. The medical term for this is:",
+                options: ["Hepatomegaly", "Hepatitis", "Cirrhosis", "Hepatoma"],
+                correctAnswer: 0,
+                explanation: "Hepatomegaly refers to an enlarged liver. It breaks down as: <span class='word-root puzzle-piece'>hepat</span> (liver) + <span class='combining-form puzzle-piece'>o</span> + <span class='word-root puzzle-piece'>megal</span> (enlargement) + <span class='suffix puzzle-piece'>y</span> (condition).",
+                points: 2
+            },
+            {
+                question: "Case Study 5: A patient presents with muscle pain. The physician diagnoses this as:",
+                options: ["Arthralgia", "Neuralgia", "Myalgia", "Fibromyalgia"],
+                correctAnswer: 2,
+                explanation: "Myalgia is muscle pain. It breaks down as: <span class='word-root puzzle-piece'>my</span> (muscle) + <span class='suffix puzzle-piece'>algia</span> (pain).",
+                points: 2
+            },
+            {
+                question: "Case Study 6: A patient's blood test reveals an abnormally low red blood cell count. This condition is termed:",
+                options: ["Leukopenia", "Thrombocytopenia", "Erythrocytosis", "Erythrocytopenia"],
+                correctAnswer: 3,
+                explanation: "Erythrocytopenia is a decreased red blood cell count. It breaks down as: <span class='word-root puzzle-piece'>erythr</span> (red) + <span class='combining-form puzzle-piece'>o</span> + <span class='word-root puzzle-piece'>cyt</span> (cell) + <span class='combining-form puzzle-piece'>o</span> + <span class='suffix puzzle-piece'>penia</span> (deficiency).",
+                points: 2
+            },
+            {
+                question: "Case Study 7: A patient is diagnosed with inflammation of the meninges (membranes covering the brain and spinal cord). This condition is called:",
+                options: ["Encephalitis", "Myelitis", "Meningitis", "Neuritis"],
+                correctAnswer: 2,
+                explanation: "Meningitis is inflammation of the meninges. It breaks down as: <span class='word-root puzzle-piece'>mening</span> (meninges) + <span class='suffix puzzle-piece'>itis</span> (inflammation).",
+                points: 2
+            },
+            {
+                question: "Case Study 8: A patient undergoes a procedure to visualize the inside of the bladder. This diagnostic procedure is called:",
+                options: ["Cystoscopy", "Colonoscopy", "Bronchoscopy", "Gastroscopy"],
+                correctAnswer: 0,
+                explanation: "Cystoscopy is the visualization of the bladder. It breaks down as: <span class='word-root puzzle-piece'>cyst</span> (bladder) + <span class='combining-form puzzle-piece'>o</span> + <span class='suffix puzzle-piece'>scopy</span> (visual examination).",
+                points: 2
+            },
+            {
+                question: "Case Study 9: A patient is diagnosed with a condition characterized by inflammation of the liver. The medical term for this is:",
+                options: ["Cholecystitis", "Cirrhosis", "Hepatomegaly", "Hepatitis"],
+                correctAnswer: 3,
+                explanation: "Hepatitis is inflammation of the liver. It breaks down as: <span class='word-root puzzle-piece'>hepat</span> (liver) + <span class='suffix puzzle-piece'>itis</span> (inflammation).",
+                points: 2
+            },
+            {
+                question: "Case Study 10: A patient presents with abnormally low blood sugar. The endocrinologist diagnoses this as:",
+                options: ["Hyperglycemia", "Hypoglycemia", "Glycosuria", "Gluconeogenesis"],
+                correctAnswer: 1,
+                explanation: "Hypoglycemia is low blood sugar. It breaks down as: <span class='prefix puzzle-piece'>hypo</span> (below normal) + <span class='word-root puzzle-piece'>glyc</span> (sugar) + <span class='suffix puzzle-piece'>emia</span> (blood condition).",
+                points: 2
+            }
+        ];
+
+        // Badge data
+        const badges = [
+            {
+                title: "Medical Terminology Novice",
+                description: "You're beginning your journey in medical terminology!",
+                svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="45" fill="#e5e7eb" stroke="#9ca3af" stroke-width="2"/>
+                    <text x="50" y="45" font-size="12" text-anchor="middle" fill="#4b5563" font-weight="bold">NOVICE</text>
+                    <path d="M35,60 Q50,75 65,60" stroke="#9ca3af" stroke-width="2" fill="none"/>
+                </svg>`
+            },
+            {
+                title: "Medical Terminology Apprentice",
+                description: "You're making good progress in understanding medical terms!",
+                svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="45" fill="#dbeafe" stroke="#60a5fa" stroke-width="2"/>
+                    <text x="50" y="40" font-size="10" text-anchor="middle" fill="#1e40af" font-weight="bold">APPRENTICE</text>
+                    <path d="M30,55 Q50,70 70,55" stroke="#60a5fa" stroke-width="2" fill="none"/>
+                    <circle cx="50" cy="50" r="20" fill="none" stroke="#60a5fa" stroke-width="1" stroke-dasharray="2"/>
+                </svg>`
+            },
+            {
+                title: "Medical Terminology Specialist",
+                description: "You've demonstrated solid knowledge of medical terminology!",
+                svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="45" fill="#bbf7d0" stroke="#4ade80" stroke-width="2"/>
+                    <text x="50" y="40" font-size="10" text-anchor="middle" fill="#166534" font-weight="bold">SPECIALIST</text>
+                    <path d="M30,55 Q50,75 70,55" stroke="#4ade80" stroke-width="3" fill="none"/>
+                    <circle cx="50" cy="50" r="25" fill="none" stroke="#4ade80" stroke-width="2"/>
+                </svg>`
+            },
+            {
+                title: "Medical Terminology Master",
+                description: "You've mastered the fundamentals of medical terminology!",
+                svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="45" fill="#fef3c7" stroke="#fbbf24" stroke-width="3"/>
+                    <text x="50" y="40" font-size="10" text-anchor="middle" fill="#92400e" font-weight="bold">MASTER</text>
+                    <path d="M25,55 Q50,80 75,55" stroke="#fbbf24" stroke-width="3" fill="none"/>
+                    <circle cx="50" cy="50" r="25" fill="none" stroke="#fbbf24" stroke-width="2"/>
+                    <path d="M50,25 L53,35 L63,35 L55,42 L58,52 L50,46 L42,52 L45,42 L37,35 L47,35 Z" fill="#fbbf24"/>
+                </svg>`
+            },
+            {
+                title: "Medical Terminology Expert",
+                description: "You've demonstrated exceptional knowledge of medical terminology!",
+                svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="45" fill="#fee2e2" stroke="#f87171" stroke-width="3"/>
+                    <text x="50" y="40" font-size="10" text-anchor="middle" fill="#991b1b" font-weight="bold">EXPERT</text>
+                    <path d="M20,55 Q50,85 80,55" stroke="#f87171" stroke-width="3" fill="none"/>
+                    <circle cx="50" cy="50" r="25" fill="none" stroke="#f87171" stroke-width="2"/>
+                    <path d="M50,20 L54,34 L68,34 L57,42 L61,56 L50,48 L39,56 L43,42 L32,34 L46,34 Z" fill="#f87171"/>
+                </svg>`
+            }
+        ];
+
+        // Quiz state
+        let currentAttempt = 1;
+        let currentQuestion = 0;
+        let score = 0;
+        let userAnswers = Array(10).fill(null);
+        let attempt1Score = 0;
+        let attempt1Correct = 0;
+        let attempt2Score = 0;
+        let attempt2Correct = 0;
+        let finalScore = 0;
+        let quizData = quizDataAttempt1;
+
+        // DOM elements
+        const questionContainer = document.getElementById('question-container');
+        const progressBar = document.getElementById('progress-bar');
+        const currentQuestionElement = document.getElementById('current-question');
+        const scoreElement = document.getElementById('score');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const quizContainer = document.getElementById('quiz-container');
+        const resultsContainer = document.getElementById('results-container');
+        const attempt1ScoreElement = document.getElementById('attempt1-score');
+        const attempt1CorrectElement = document.getElementById('attempt1-correct');
+        const attempt2ScoreElement = document.getElementById('attempt2-score');
+        const attempt2CorrectElement = document.getElementById('attempt2-correct');
+        const finalScoreElement = document.getElementById('final-score');
+        const finalResultsDiv = document.getElementById('final-results');
+        const attempt2ResultsDiv = document.getElementById('attempt2-results');
+        const reviewBtn = document.getElementById('review-btn');
+        const reviewAttempt2Btn = document.getElementById('review-attempt2-btn');
+        const secondAttemptBtn = document.getElementById('second-attempt-btn');
+        const submitToCanvasBtn = document.getElementById('submit-to-canvas-btn');
+        const submitFinalBtn = document.getElementById('submit-final-btn');
+        const canvasModal = document.getElementById('canvas-modal');
+        const closeModalBtn = document.getElementById('close-modal');
+        const confirmBtn = document.getElementById('confirm-btn');
+        const modalScoreElement = document.getElementById('modal-score');
+        const modalScore1Element = document.getElementById('modal-score1');
+        const modalScore2Element = document.getElementById('modal-score2');
+        const modalAvgScoreElement = document.getElementById('modal-avg-score');
+        const modalSingleScore = document.getElementById('modal-single-score');
+        const modalDualScores = document.getElementById('modal-dual-scores');
+        const badgeContainer = document.getElementById('badge');
+        const badgeTitleElement = document.getElementById('badge-title');
+        const badgeDescriptionElement = document.getElementById('badge-description');
+        const attemptIndicator = document.getElementById('attempt-indicator');
+        const firstAttemptButtons = document.getElementById('first-attempt-buttons');
+        const secondAttemptButtons = document.getElementById('second-attempt-buttons');
+
+        // Initialize quiz
+        function initQuiz() {
+            loadQuestion();
+            
+            // Event listeners
+            prevBtn.addEventListener('click', goToPreviousQuestion);
+            nextBtn.addEventListener('click', goToNextQuestion);
+            reviewBtn.addEventListener('click', () => reviewAnswers(1));
+            reviewAttempt2Btn.addEventListener('click', () => reviewAnswers(2));
+            secondAttemptBtn.addEventListener('click', startSecondAttempt);
+            submitToCanvasBtn.addEventListener('click', () => submitToCanvas(false));
+            submitFinalBtn.addEventListener('click', () => submitToCanvas(true));
+            closeModalBtn.addEventListener('click', closeModal);
+            confirmBtn.addEventListener('click', closeModal);
+        }
+
+        // Load question
+        function loadQuestion() {
+            const question = quizData[currentQuestion];
+            
+            // Update progress
+            currentQuestionElement.textContent = currentQuestion + 1;
+            progressBar.style.width = `${((currentQuestion + 1) / quizData.length) * 100}%`;
+            
+            // Enable/disable navigation buttons
+            prevBtn.disabled = currentQuestion === 0;
+            nextBtn.textContent = currentQuestion === quizData.length - 1 ? 'Finish' : 'Next';
+            
+            // Create question HTML
+            let questionHTML = `
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">${question.question}</h3>
+                </div>
+                <div class="space-y-3">
+            `;
+            
+            // Add options
+            question.options.forEach((option, index) => {
+                const isSelected = userAnswers[currentQuestion] === index;
+                questionHTML += `
+                    <button class="option-btn w-full text-left p-3 rounded-md border ${isSelected ? 'bg-blue-100 border-blue-500' : 'bg-white border-gray-300'}" 
+                            data-index="${index}">
+                        <span class="inline-block w-6 h-6 rounded-full ${isSelected ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} text-center mr-2">${String.fromCharCode(65 + index)}</span>
+                        ${option}
+                    </button>
+                `;
+            });
+            
+            questionHTML += `</div>`;
+            
+            // Add explanation if user has already answered
+            if (userAnswers[currentQuestion] !== null) {
+                const isCorrect = userAnswers[currentQuestion] === question.correctAnswer;
+                questionHTML += `
+                    <div class="mt-4 p-3 rounded-md ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}">
+                        <p class="font-medium ${isCorrect ? 'text-green-700' : 'text-red-700'} mb-1">
+                            ${isCorrect ? 'Correct!' : 'Incorrect!'} 
+                            ${isCorrect ? `+${question.points} points` : '0 points'}
+                        </p>
+                        <p class="text-gray-700">${question.explanation}</p>
+                    </div>
+                `;
+            }
+            
+            questionContainer.innerHTML = questionHTML;
+            
+            // Add event listeners to options
+            document.querySelectorAll('.option-btn').forEach(button => {
+                button.addEventListener('click', () => selectOption(parseInt(button.dataset.index)));
+            });
+        }
+
+        // Select option
+        function selectOption(optionIndex) {
+            const question = quizData[currentQuestion];
+            const previousAnswer = userAnswers[currentQuestion];
+            
+            // Update user answer
+            userAnswers[currentQuestion] = optionIndex;
+            
+            // Update score if this is the first time answering or changing answer
+            if (previousAnswer === null) {
+                if (optionIndex === question.correctAnswer) {
+                    score += question.points;
+                }
+            } else if (previousAnswer !== optionIndex) {
+                if (previousAnswer === question.correctAnswer && optionIndex !== question.correctAnswer) {
+                    score -= question.points;
+                } else if (previousAnswer !== question.correctAnswer && optionIndex === question.correctAnswer) {
+                    score += question.points;
+                }
+            }
+            
+            // Update score display
+            scoreElement.textContent = score;
+            
+            // Reload question to show selection
+            loadQuestion();
+            
+            // Automatically go to next question if this is the first time answering
+            if (previousAnswer === null && currentQuestion < quizData.length - 1) {
+                setTimeout(goToNextQuestion, 1000);
+            }
+        }
+
+        // Navigation functions
+        function goToPreviousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        }
+
+        function goToNextQuestion() {
+            if (currentQuestion < quizData.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        // Finish quiz
+        function finishQuiz() {
+            // Calculate results
+            const correctCount = userAnswers.filter((answer, index) => answer === quizData[index].correctAnswer).length;
+            
+            if (currentAttempt === 1) {
+                // Store first attempt results
+                attempt1Score = score;
+                attempt1Correct = correctCount;
+                
+                // Update results display for first attempt
+                attempt1ScoreElement.textContent = `${attempt1Score}/20`;
+                attempt1CorrectElement.textContent = `${attempt1Correct}/10`;
+                
+                // Set badge based on first attempt score
+                setBadge(attempt1Score);
+                
+                // Show first attempt buttons
+                firstAttemptButtons.classList.remove('hidden');
+                secondAttemptButtons.classList.add('hidden');
+            } else {
+                // Store second attempt results
+                attempt2Score = score;
+                attempt2Correct = correctCount;
+                
+                // Calculate final average score
+                finalScore = Math.round((attempt1Score + attempt2Score) / 2);
+                
+                // Update results display for second attempt
+                attempt2ScoreElement.textContent = `${attempt2Score}/20`;
+                attempt2CorrectElement.textContent = `${attempt2Correct}/10`;
+                finalScoreElement.textContent = `${finalScore}/20`;
+                
+                // Show second attempt results
+                attempt2ResultsDiv.classList.remove('hidden');
+                finalResultsDiv.classList.remove('hidden');
+                
+                // Set badge based on final average score
+                setBadge(finalScore);
+                
+                // Show second attempt buttons
+                firstAttemptButtons.classList.add('hidden');
+                secondAttemptButtons.classList.remove('hidden');
+            }
+            
+            // Show results
+            quizContainer.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+        }
+
+        // Set badge based on score
+        function setBadge(scoreValue) {
+            let badgeIndex;
+            if (scoreValue <= 4) badgeIndex = 0;
+            else if (scoreValue <= 8) badgeIndex = 1;
+            else if (scoreValue <= 12) badgeIndex = 2;
+            else if (scoreValue <= 16) badgeIndex = 3;
+            else badgeIndex = 4;
+            
+            const badge = badges[badgeIndex];
+            badgeContainer.innerHTML = badge.svg;
+            badgeTitleElement.textContent = badge.title;
+            badgeDescriptionElement.textContent = badge.description;
+        }
+
+        // Review answers
+        function reviewAnswers(attemptNumber) {
+            // Set the correct quiz data and user answers for review
+            if (attemptNumber === 1) {
+                quizData = quizDataAttempt1;
+                // If we're in attempt 2, we need to restore attempt 1 answers
+                if (currentAttempt === 2) {
+                    userAnswers = Array(10).fill(null); // Reset for now (would need to store attempt 1 answers)
+                }
+            } else {
+                quizData = quizDataAttempt2;
+            }
+            
+            quizContainer.classList.remove('hidden');
+            resultsContainer.classList.add('hidden');
+            currentQuestion = 0;
+            loadQuestion();
+            nextBtn.textContent = 'Next';
+            
+            // Disable option selection during review
+            setTimeout(() => {
+                document.querySelectorAll('.option-btn').forEach(button => {
+                    button.disabled = true;
+                    button.classList.add('cursor-not-allowed');
+                });
+            }, 100);
+        }
+
+        // Start second attempt
+        function startSecondAttempt() {
+            // Reset for second attempt
+            currentAttempt = 2;
+            currentQuestion = 0;
+            score = 0;
+            userAnswers = Array(10).fill(null);
+            quizData = quizDataAttempt2;
+            
+            // Update UI
+            attemptIndicator.textContent = "Attempt 2 of 2";
+            scoreElement.textContent = "0";
+            
+            // Show quiz container
+            quizContainer.classList.remove('hidden');
+            resultsContainer.classList.add('hidden');
+            
+            // Enable option selection
+            setTimeout(() => {
+                document.querySelectorAll('.option-btn').forEach(button => {
+                    button.disabled = false;
+                    button.classList.remove('cursor-not-allowed');
+                });
+            }, 100);
+            
+            loadQuestion();
+        }
+
+        // Submit to Canvas
+        function submitToCanvas(isFinal) {
+            if (isFinal || currentAttempt === 2) {
+                // Show both scores and average
+                modalSingleScore.classList.add('hidden');
+                modalDualScores.classList.remove('hidden');
+                
+                modalScore1Element.textContent = `${attempt1Score}/20`;
+                modalScore2Element.textContent = `${attempt2Score}/20`;
+                modalAvgScoreElement.textContent = `${finalScore}/20`;
+            } else {
+                // Show only first attempt score
+                modalSingleScore.classList.remove('hidden');
+                modalDualScores.classList.add('hidden');
+                
+                modalScoreElement.textContent = `${attempt1Score}/20`;
+            }
+            
+            canvasModal.classList.remove('hidden');
+            
+            // Simulate API call to Canvas LMS
+            setTimeout(() => {
+                if (isFinal || currentAttempt === 2) {
+                    console.log("Final scores submitted to Canvas:", {
+                        attempt1: attempt1Score,
+                        attempt2: attempt2Score,
+                        average: finalScore
+                    });
+                } else {
+                    console.log("First attempt score submitted to Canvas:", attempt1Score);
+                }
+            }, 1000);
+        }
+
+        // Close modal
+        function closeModal() {
+            canvasModal.classList.add('hidden');
+        }
+
+        // Initialize quiz when page loads
+        document.addEventListener('DOMContentLoaded', initQuiz);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9677f8ec90331034',t:'MTc1MzkxMTE4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
